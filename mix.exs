@@ -3,7 +3,7 @@ defmodule Box.MixProject do
 
   def project do
     [
-      app: :box,
+      app: :elixir_docker_box_test,
       version: "0.1.0",
       apps_path: "apps",
       start_permanent: Mix.env() == :prod,
