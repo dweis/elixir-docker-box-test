@@ -21,3 +21,6 @@ erl_crash.dump
 
 # Distillery release configuration
 rel/
+
+# Env files
+config/*.env
