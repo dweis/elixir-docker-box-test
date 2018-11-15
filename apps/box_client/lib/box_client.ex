@@ -89,6 +89,32 @@ defmodule BoxClient do
     |> process_json_result(@expected_user_fields)
   end
 
+  @expected_token_fields ~w(access_token expires_in restricted_to token_type)
+
+  def get_service_account_token do
+    config = BoxClient.Jwt.parse_config_json("config.json")
+
+    claims =
+      BoxClient.Jwt.make_claims(
+        config[:client_id],
+        config[:public_key_id],
+        config[:enterprise_id]
+      )
+
+    {:ok, assertion, _} = BoxClient.Jwt.sign_assertion(claims)
+
+    params =
+      URI.encode_query(%{
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: assertion,
+        client_id: config[:client_id],
+        client_secret: config[:client_secret]
+      })
+
+    post("/oauth2/token", params)
+    |> process_json_result(@expected_token_fields)
+  end
+
   @doc """
   Returns an absolute URL to the endpoint when given a relative `url`.
 

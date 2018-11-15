@@ -28,3 +28,8 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env()}.exs"
+
+config :box_client, BoxClient.Guardian,
+  issuer: {BoxClient.Jwt, :get_issuer_from_config_json, []},
+  allowed_algos: ["RS512"],
+  secret_key: {BoxClient.Jwt, :get_key_from_config_json, []}
