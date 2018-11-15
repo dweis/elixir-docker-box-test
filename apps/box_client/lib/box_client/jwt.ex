@@ -17,36 +17,13 @@ defmodule BoxClient.Jwt do
     BoxClient.Guardian.encode_and_sign(%{}, claims, ttl: {ttl_seconds, :seconds} )
   end
 
-  def get_key(private_key, passphrase) do
-    passphrase |> JOSE.JWK.from_pem(private_key)
+  def get_issuer do
+    config = Application.get_env(:box_client, :box_app_settings)
+    config[:client_id]
   end
 
-  def get_key_from_env() do
-    get_key(System.get_env("SECRET_KEY"), System.get_env("SECRET_KEY_PASSPHRASE"))
-  end
-
-  def get_key_from_config_json(config_path \\ "config.json") do
-    conf = parse_config_json(config_path)
-    get_key(conf[:private_key], conf[:passphrase])
-  end
-
-  def get_issuer_from_config_json(config_path \\ "config.json") do
-    conf = parse_config_json(config_path)
-    conf[:client_id]
-  end
-
-  def parse_config_json(config_path) do
-    config =
-      File.read!(config_path)
-      |> Poison.decode!()
-
-    %{
-      client_id: config["boxAppSettings"]["clientID"],
-      client_secret: config["boxAppSettings"]["clientSecret"],
-      public_key_id: config["boxAppSettings"]["appAuth"]["publicKeyID"],
-      private_key: config["boxAppSettings"]["appAuth"]["privateKey"],
-      passphrase: config["boxAppSettings"]["appAuth"]["passphrase"],
-      enterprise_id: config["enterpriseID"]
-    }
+  def get_key() do
+    config = Application.get_env(:box_client, :box_app_settings)
+    config[:passphrase] |> JOSE.JWK.from_pem(config[:private_key])
   end
 end

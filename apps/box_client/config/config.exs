@@ -29,7 +29,15 @@ use Mix.Config
 #
 #     import_config "#{Mix.env()}.exs"
 
+config :box_client, :box_app_settings,
+  client_id: System.get_env("CLIENT_ID"),
+  client_secret: System.get_env("CLIENT_SECRET"),
+  public_key_id: System.get_env("PUBLIC_KEY_ID"),
+  private_key: System.get_env("PRIVATE_KEY"),
+  passphrase: System.get_env("PASSPHRASE"),
+  enterprise_id: System.get_env("ENTERPRISE_ID")
+
 config :box_client, BoxClient.Guardian,
-  issuer: {BoxClient.Jwt, :get_issuer_from_config_json, []},
+  issuer: {BoxClient.Jwt, :get_issuer, []},
   allowed_algos: ["RS512"],
-  secret_key: {BoxClient.Jwt, :get_key_from_config_json, []}
+  secret_key: {BoxClient.Jwt, :get_key, []}

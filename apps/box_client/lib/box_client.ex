@@ -92,7 +92,7 @@ defmodule BoxClient do
   @expected_token_fields ~w(access_token expires_in restricted_to token_type)
 
   def get_service_account_token do
-    config = BoxClient.Jwt.parse_config_json("config.json")
+    config = Application.get_env(:box_client, :box_app_settings)
 
     claims =
       BoxClient.Jwt.make_claims(
