@@ -11,6 +11,13 @@ defmodule Router do
     options
   end
 
+  get "/token" do
+    conf = File.read!("config.json")
+           |> Poison.decode!()
+
+
+  end
+
   get "/hello/:name" do
     {:ok, json} = Poison.encode(%{"hello" => name})
     conn
