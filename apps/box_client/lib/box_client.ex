@@ -86,6 +86,16 @@ defmodule BoxClient do
     is_platform_access_only
   )
 
+  @expected_users_fields ~w(total_count entries)
+
+  @doc """
+  Returns the enterprise users for the given `token`.
+  """
+  def get_users(token, user_type \\ "managed") do
+    get("/2.0/users?user_type=" <>  user_type, [make_auth(token)])
+    |> process_json_result(@expected_users_fields)
+  end
+
   @doc """
   Returns the user data for the given `token` and `user_id`. `user_id` 
   can be "me" in which case the requesting user data will be returned.

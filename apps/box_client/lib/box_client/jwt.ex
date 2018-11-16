@@ -12,7 +12,7 @@ defmodule BoxClient.Jwt do
   end
 
   def sign_assertion(claims, ttl_seconds \\ 45) do
-    BoxClient.Guardian.encode_and_sign(%{}, claims, ttl: {ttl_seconds, :seconds} )
+    BoxClient.Guardian.encode_and_sign(%{}, claims, ttl: {ttl_seconds, :seconds})
   end
 
   def get_issuer do
