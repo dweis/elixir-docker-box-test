@@ -11,11 +11,16 @@ defmodule Router do
     options
   end
 
+  get "/" do
+    page_contents = EEx.eval_file(Path.join([__DIR__, "..", "..", "templates", "index.eex"]))
+    conn
+    |> put_resp_content_type("text/html")
+    |> send_resp(200, page_contents)
+  end
+
   get "/token" do
     conf = File.read!("config.json")
            |> Poison.decode!()
-
-
   end
 
   get "/hello/:name" do

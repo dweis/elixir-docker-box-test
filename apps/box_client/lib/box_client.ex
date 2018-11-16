@@ -42,6 +42,19 @@ defmodule BoxClient do
     |> process_json_result(@expected_file_fields)
   end
 
+  @expected_file_reps_fields ~w(type id etag representations)
+
+  @doc """
+  Returns the representations for the given `token`, `file_id`, and `rep_hinsts`
+  """
+  def get_file_reps(token, file_id, rep_hints \\ nil) do
+    get(
+      "/2.0/files/" <> file_id <> "?fields=representations",
+      [make_auth(token), {"x-rep-hints", rep_hints}]
+    )
+    |> process_json_result(@expected_file_reps_fields)
+  end
+
   @doc """
   Returns the binary content for the given `file_id`
   """
@@ -92,7 +105,7 @@ defmodule BoxClient do
   Returns the enterprise users for the given `token`.
   """
   def get_users(token, user_type \\ "managed") do
-    get("/2.0/users?user_type=" <>  user_type, [make_auth(token)])
+    get("/2.0/users?user_type=" <> user_type, [make_auth(token)])
     |> process_json_result(@expected_users_fields)
   end
 
@@ -161,17 +174,22 @@ defmodule BoxClient do
     json
     |> Poison.decode!()
     |> Map.take(expected_fields)
-    |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
+    |> BoxClient.Util.to_keyword_list()
   end
 
   defp make_auth(token) do
-    {"authorization", "Bearer " <> token}
+    {"authorization", "Bearer " <> if is_bitstring(token) do
+      token
+    else
+      token[:access_token]
+    end}
   end
 
   @expected_token_fields ~w(access_token expires_in restricted_to token_type)
 
   defp get_token_for_subject(sub, sub_type \\ "enterprise") do
     config = Application.get_env(:box_client, :box_app_settings)
+
     params =
       URI.encode_query(%{
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",

@@ -10,6 +10,7 @@ defmodule BoxClient.Application do
     children = [
       # Starts a worker by calling: BoxClient.Worker.start_link(arg)
       # {BoxClient.Worker, arg},
+      BoxClient.TokenStore.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
