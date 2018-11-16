@@ -24,3 +24,8 @@ rel/
 
 # Env files
 config/*.env
+
+# Environment Runner
+env
+
+.#*

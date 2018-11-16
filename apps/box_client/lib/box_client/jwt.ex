@@ -1,8 +1,6 @@
 defmodule BoxClient.Jwt do
   @authentication_url "https://api.box.com/oauth2/token"
 
-  # https://developer.box.com/docs/construct-jwt-claim-manually#section-1-read-json-config
-
   def make_claims(client_id, kid, sub, sub_type \\ "enterprise") do
     %{
       iss: client_id,
@@ -18,12 +16,28 @@ defmodule BoxClient.Jwt do
   end
 
   def get_issuer do
-    config = Application.get_env(:box_client, :box_app_settings)
+    config = Application.get_env(:box_client, :box_app_settings, :client_id)
     config[:client_id]
   end
 
   def get_key() do
     config = Application.get_env(:box_client, :box_app_settings)
     config[:passphrase] |> JOSE.JWK.from_pem(config[:private_key])
+  end
+
+  def make_assertion_for(sub, sub_type) do
+    config = Application.get_env(:box_client, :box_app_settings)
+
+    claims =
+      BoxClient.Jwt.make_claims(
+        config[:client_id],
+        config[:public_key_id],
+        sub,
+        sub_type
+      )
+
+    {:ok, assertion, _} = BoxClient.Jwt.sign_assertion(claims)
+
+    assertion
   end
 end

@@ -26,12 +26,12 @@ defmodule BoxClient do
   end
 
   @expected_file_fields ~w(
-    type id file_version sequence_id etag sha1 name description size path_collection
-    created_at modified_at trashed_at purged_at content_created_at content_modified_at
-    expires_at created_by modified_by owned_by shared_link parent item_status
-    version_number comment_count permissions tags lock extension is_package
-    expiring_embed_link watermark_info allow_invitee_roles is_externally_owned
-    has_collaborations metadata
+    type id file_version sequence_id etag sha1 name description size
+    path_collection created_at modified_at trashed_at purged_at content_created_at
+    content_modified_at expires_at created_by modified_by owned_by shared_link
+    parent item_status version_number comment_count permissions tags lock
+    extension is_package expiring_embed_link watermark_info allow_invitee_roles
+    is_externally_owned has_collaborations metadata
   )
 
   @doc """
@@ -62,22 +62,28 @@ defmodule BoxClient do
     |> process_json_result(@expected_file_versions_fields)
   end
 
-  @expected_file_version_fields ~w(type ip sha1 name size created_at modified_at modified_by)
+  @expected_file_version_fields ~w(
+    type ip sha1 name size created_at modified_at modified_by
+  )
 
   @doc """
   Returns the file version for the given `token`, `file_id` and `file_version_id`
   """
   def get_file_version(token, file_id, file_version_id \\ "current") do
-    get("/2.0/files/" <> file_id <> "/versions/" <> file_version_id, [make_auth(token)])
+    get(
+      "/2.0/files/" <> file_id <> "/versions/" <> file_version_id,
+      [make_auth(token)]
+    )
     |> process_json_result(@expected_file_version_fields)
   end
 
   @expected_user_fields ~w(
-    type id name login created_at modified_at language timezone space_amount space_used
-    max_upload_size status job_title phone address avatar_url role tracking_codes
-    can_see_managed_users is_sync_enabled is_external_collab_restricted
-    is_exempt_from_device_limits is_exempt_from_login_verification enterprise my_tags
-    hostname is_platform_access_only
+    type id name login created_at modified_at language timezone space_amount
+    space_used max_upload_size status job_title phone address avatar_url role
+    tracking_codes can_see_managed_users is_sync_enabled
+    is_external_collab_restricted is_exempt_from_device_limits
+    is_exempt_from_login_verification enterprise my_tags hostname
+    is_platform_access_only
   )
 
   @doc """
@@ -89,31 +95,19 @@ defmodule BoxClient do
     |> process_json_result(@expected_user_fields)
   end
 
-  @expected_token_fields ~w(access_token expires_in restricted_to token_type)
-
+  @doc """
+  Get an access token for the configured service account.
+  """
   def get_service_account_token do
     config = Application.get_env(:box_client, :box_app_settings)
 
-    claims =
-      BoxClient.Jwt.make_claims(
-        config[:client_id],
-        config[:public_key_id],
-        config[:enterprise_id]
-      )
-
-    {:ok, assertion, _} = BoxClient.Jwt.sign_assertion(claims)
-
-    params =
-      URI.encode_query(%{
-        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: assertion,
-        client_id: config[:client_id],
-        client_secret: config[:client_secret]
-      })
-
-    post("/oauth2/token", params)
-    |> process_json_result(@expected_token_fields)
+    get_token_for_subject(config[:enterprise_id])
   end
+
+  @doc """
+  Get an access token for an app user.
+  """
+  def get_user_token(user_id), do: get_token_for_subject(user_id, "user")
 
   @doc """
   Returns an absolute URL to the endpoint when given a relative `url`.
@@ -162,5 +156,28 @@ defmodule BoxClient do
 
   defp make_auth(token) do
     {"authorization", "Bearer " <> token}
+  end
+
+  @expected_token_fields ~w(access_token expires_in restricted_to token_type)
+
+  defp get_token_for_subject(sub, sub_type \\ "enterprise") do
+    config = Application.get_env(:box_client, :box_app_settings)
+    params =
+      URI.encode_query(%{
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: BoxClient.Jwt.make_assertion_for(sub, sub_type),
+        client_id: config[:client_id],
+        client_secret: config[:client_secret]
+      })
+
+    post("/oauth2/token", params)
+    |> process_json_result(@expected_token_fields)
+    |> Enum.map(fn {k, v} ->
+      if k == :expires_in do
+        {:expires_at, v + (DateTime.utc_now() |> DateTime.to_unix())}
+      else
+        {k, v}
+      end
+    end)
   end
 end
