@@ -118,6 +118,19 @@ defmodule BoxClient do
     |> process_json_result(@expected_user_fields)
   end
 
+  @expected_search_fields ~w(total_count entries limit offset)
+
+  @doc """
+  Finds items matching the given `query` which are available to the
+  user of the access token `token`.
+  """
+  def search(token, query, opts \\ []) do
+    opts_str = Enum.reduce(opts, "", fn {k,v}, acc ->
+      "&" <> to_string(k) <> "=" <> to_string(v) <> acc end)
+    get("/2.0/search?query=" <> query <> opts_str, [make_auth(token)])
+    |> process_json_result(@expected_search_fields)
+  end
+
   @doc """
   Get an access token for the configured service account.
   """

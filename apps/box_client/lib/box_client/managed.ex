@@ -1,5 +1,5 @@
 defmodule BoxClient.Managed do
-  def get_folder(folder_id \\ "0", opts \\ [])
+  def get_folder(folder_id, opts \\ [])
 
   def get_folder(folder_id, user_id: user_id) do
     get_access_token(user_id)
@@ -9,6 +9,18 @@ defmodule BoxClient.Managed do
   def get_folder(folder_id, []) do
     get_access_token()
     |> BoxClient.get_folder(folder_id)
+  end
+
+  def get_file(file_id, opts \\ [])
+
+  def get_file(file_id, user_id: user_id) do
+    get_access_token(user_id)
+    |> BoxClient.get_file(file_id)
+  end
+
+  def get_file(file_id, []) do
+    get_access_token()
+    |> BoxClient.get_file(file_id)
   end
 
   def get_access_token(user_id) do
