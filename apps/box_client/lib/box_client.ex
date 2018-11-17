@@ -20,9 +20,17 @@ defmodule BoxClient do
   @doc """
   Returns the folder for the given `token` and `folder_id`.
   """
-  def get_folder(token, folder_id) do
-    get("/2.0/folders/" <> folder_id, [make_auth(token)])
+  def get_folder(token, folder_id, opts \\ []) do
+    get("/2.0/folders/" <> folder_id <> "?" <> make_opts_str(opts), [make_auth(token)])
     |> process_json_result(@expected_folder_fields)
+  end
+
+  @expected_folder_items_fields ~w(total_count entries offset limit order)
+
+  def get_folder_items(token, folder_id, opts \\ []) do
+    get("/2.0/folders/" <> folder_id <> "/items?" <> make_opts_str(opts),
+      [make_auth(token)])
+      |> process_json_result(@expected_folder_items_fields)
   end
 
   @expected_file_fields ~w(
@@ -31,14 +39,14 @@ defmodule BoxClient do
     content_modified_at expires_at created_by modified_by owned_by shared_link
     parent item_status version_number comment_count permissions tags lock
     extension is_package expiring_embed_link watermark_info allow_invitee_roles
-    is_externally_owned has_collaborations metadata
+    is_externally_owned has_collaborations metadata representations
   )
 
   @doc """
   Returns the file for the given `token` and `file_id`
   """
-  def get_file(token, file_id) do
-    get("/2.0/files/" <> file_id, [make_auth(token)])
+  def get_file(token, file_id, opts \\ []) do
+    get("/2.0/files/" <> file_id <> "?" <> make_opts_str(opts), [make_auth(token)])
     |> process_json_result(@expected_file_fields)
   end
 
@@ -70,8 +78,11 @@ defmodule BoxClient do
   @doc """
   Returns the file versions for the given `token` and `file_id`
   """
-  def get_file_versions(token, file_id) do
-    get("/2.0/files/" <> file_id <> "/versions", [make_auth(token)])
+  def get_file_versions(token, file_id, opts \\ []) do
+    get(
+      "/2.0/files/" <> file_id <> "/versions" <> "?" <> make_opts_str(opts),
+      [make_auth(token)]
+    )
     |> process_json_result(@expected_file_versions_fields)
   end
 
@@ -125,9 +136,7 @@ defmodule BoxClient do
   user of the access token `token`.
   """
   def search(token, query, opts \\ []) do
-    opts_str = Enum.reduce(opts, "", fn {k,v}, acc ->
-      "&" <> to_string(k) <> "=" <> to_string(v) <> acc end)
-    get("/2.0/search?query=" <> query <> opts_str, [make_auth(token)])
+    get("/2.0/search?query=" <> query <> "&" <> make_opts_str(opts), [make_auth(token)])
     |> process_json_result(@expected_search_fields)
   end
 
@@ -191,11 +200,13 @@ defmodule BoxClient do
   end
 
   defp make_auth(token) do
-    {"authorization", "Bearer " <> if is_bitstring(token) do
-      token
-    else
-      token[:access_token]
-    end}
+    {"authorization",
+     "Bearer " <>
+       if is_bitstring(token) do
+         token
+       else
+         token[:access_token]
+       end}
   end
 
   @expected_token_fields ~w(access_token expires_in restricted_to token_type)
@@ -221,4 +232,17 @@ defmodule BoxClient do
       end
     end)
   end
+
+  def make_opts_str(opts),
+    do:
+      Enum.reduce(opts, "", fn {k, v}, acc ->
+        to_string(k) <>
+          "=" <>
+          to_string(v) <>
+          if acc != "" do
+            "&" <> acc
+          else
+            acc
+          end
+      end)
 end
