@@ -41,3 +41,6 @@ config :box_client, BoxClient.Guardian,
   issuer: {BoxClient.Jwt, :get_issuer, []},
   allowed_algos: ["RS512"],
   secret_key: {BoxClient.Jwt, :get_key, []}
+
+
+config :tesla, adapter: Tesla.Adapter.Hackney
