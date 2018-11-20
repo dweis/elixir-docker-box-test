@@ -19,8 +19,29 @@ defmodule Router do
   end
 
   get "/token" do
-    conf = File.read!("config.json")
-           |> Poison.decode!()
+    token = BoxClient.Managed.get_access_token()
+    {:ok, json} = Poison.encode(%{access_token: token[:access_token], expires: token[:expires]})
+    conn
+    |> put_resp_content_type("text/json")
+    |> send_resp(200, json)
+  end
+
+  get "/token/:user_id" do
+    token = BoxClient.Managed.get_access_token(user_id)
+    {:ok, json} = Poison.encode(%{access_token: token[:access_token], expires: token[:expires]})
+    conn
+    |> put_resp_content_type("text/json")
+    |> send_resp(200, json)
+  end
+
+  get "/users" do
+    {:ok, %Tesla.Env{ body: body }} = Box.client() |> Box.users()
+
+    {:ok, json} = Poison.encode(body)
+
+    conn
+    |> put_resp_content_type("text/json")
+    |> send_resp(200, json)
   end
 
   get "/hello/:name" do
