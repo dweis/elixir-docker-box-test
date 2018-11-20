@@ -17,6 +17,6 @@ defmodule Box.MixProject do
   #
   # Run "mix help deps" for examples and options.
   defp deps do
-    []
+    [{:witchcraft, "~> 1.0"}]
   end
 end

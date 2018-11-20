@@ -79,7 +79,9 @@ defmodule Box do
       {Tesla.Middleware.Headers, [{"authorization", "Bearer " <> token}]}
     ]
 
-    Tesla.client(middleware)
+    adapter = {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
+
+    Tesla.client(middleware, adapter)
   end
 
   def client(user_id: user_id),
@@ -112,7 +114,9 @@ defmodule Box do
       Tesla.Middleware.JSON
     ]
 
-    client = Tesla.client(middleware)
+    adapter = {Tesla.Adapter.Hackney, [recv_timeout: 30_000]}
+
+    client = Tesla.client(middleware, adapter)
 
     Tesla.post(client, "/oauth2/token", params)
   end
