@@ -1,4 +1,5 @@
 %{
+  "algae": {:hex, :algae, "1.2.0", "1ca9520a0f67a1e5f80f446f682e650a3fbdc6cdaaea75e3336a7d0f1ade5086", [:mix], [{:quark, "~> 2.3", [hex: :quark, repo: "hexpm", optional: false]}, {:type_class, "~> 1.2", [hex: :type_class, repo: "hexpm", optional: false]}, {:witchcraft, "~> 1.0", [hex: :witchcraft, repo: "hexpm", optional: false]}], "hexpm"},
   "artificery": {:hex, :artificery, "0.2.6", "f602909757263f7897130cbd006b0e40514a541b148d366ad65b89236b93497a", [:mix], [], "hexpm"},
   "base64url": {:hex, :base64url, "0.0.1", "36a90125f5948e3afd7be97662a1504b934dd5dac78451ca6e9abf85a10286be", [:rebar], [], "hexpm"},
   "certifi": {:hex, :certifi, "2.4.2", "75424ff0f3baaccfd34b1214184b6ef616d89e420b258bb0a5ea7d7bc628f7f0", [:rebar3], [{:parse_trans, "~>3.3", [hex: :parse_trans, repo: "hexpm", optional: false]}], "hexpm"},
